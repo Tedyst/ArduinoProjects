@@ -66,17 +66,24 @@ int direction() {
 
 int move_to_x(int direction) {
     int derotit = 0;
-    if(direction * 22.5 + StepperPos > 180) { // 22.5 degrees per direction
-        derotit = -180 + direction * 22.5 + StepperPos;
+    // 22.5 degrees per direction
+    if(direction * 22.5 + StepperPos > 180) {
+        derotit = - direction * 22.5 - StepperPos;
+        StepperPos = direction * 22.5 - StepperPos - 180;
     } else {
         derotit = direction * 22.5 + StepperPos;
+        StepperPos = derotit;
     }
+    // Write the new position to EEPROM
+    EEPROM.write(0, StepperPos);
+
     Serial.print("Unghiul dorit este de ");
     Serial.print(direction * 22.5 + StepperPos);
     Serial.print(", deci ne rotim ");
     Serial.print(derotit);
     Serial.print('\n');
-    stepper_x.step(ceil(derotit * 11.333)); // roughly 11.333 steps per degree
+    // roughly 11.333 steps per degree
+    stepper_x.step(ceil(derotit * 11.333));
 }
 
 void schimba_directia_x(int new_direction = direction()) {
