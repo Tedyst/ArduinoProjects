@@ -10,14 +10,14 @@
 #define Y1_PIN 3
 #define Y2_PIN 4
 #define LIGHT_ALLOWANCE 0.75
-Stepper stepper = Stepper(STEPS_PER_REVOLUTION, 11, 10, 9, 8);
-int ultima_directie = -1;
+Stepper stepper_x = Stepper(STEPS_PER_REVOLUTION, 11, 10, 9, 8);
+int last_direction = -1;
 /* ADRESS MAP EEPROM
-    0 -> last stepper position byte 1
+    0 -> last stepper position ( range 0-180 )
 */
 unsigned int StepperPos;
 void setup() {
-  stepper.setSpeed(STEPPER_SPEED);
+  stepper_x.setSpeed(STEPPER_SPEED);
   Serial.begin(9600);
   StepperPos = EEPROM.read(0);
   
@@ -50,8 +50,8 @@ int directie() {
   };
 
   // Get the max value and its indices from the array 
-  int id=0;
-  double maxim=vect[1];
+  int id = 0;
+  double maxim = vect[1];
   for(int i = 1; i < 8 ; i++)
     if(maxim < vect[i]){
       maxim = vect[i];
@@ -65,21 +65,21 @@ int muta_spre_directie(int directie){
 }
 void schimba_directia_x(){
   Serial.print("Directia dorita din acest moment este: ");
-  int nouadirectie = directie();
-  Serial.println(nouadirectie);
-  if(ultima_directie == -1){
+  int new_direction = directie();
+  Serial.println(new_direction);
+  if(last_direction == -1){
     // 0 este directia initiala
     muta_spre_directie(0);
-    ultima_directie = 0;
+    last_direction = 0;
     return;
   }
-  if(ultima_directie != nouadirectie){
+  if(last_direction != new_direction){
     Serial.print("Directia dorita trebuie schimbata in ");
-    Serial.print(nouadirectie);
+    Serial.print(new_direction);
     Serial.print(". Va fi schimbata in 3 secunde.");
     Serial.print('\n');
     for(int i = 1; i <= 3; i++){
-      if(nouadirectie != directie()){
+      if(new_direction != directie()){
         Serial.println("Anulare schimbare directie.");
         return;
       }
@@ -87,7 +87,33 @@ void schimba_directia_x(){
     }
   }
 }
+void serial(){
+  string inString = ""; 
+  int command = 0;
+  while (Serial.available() > 0) {
+    int inChar = Serial.read();
+    if(inChar == '\n'){
+        if(command == 1){
+          print("Received command set_home_x ");
+          int val = inString.toInt();
+          print(val);
+          print('\n');
+          schimba_directia_x(val);
+          last_direction = 0;
+        }
+        inString = "";
+    } else if(inChar == ' '){
+      if(inString == "set_home_x"){
+          command = 1;
+          inString = "";
+      }
+    } else { 
+      inString += inChar;
+    }
+  }
+}
 void loop() {
   schimba_directia_x();
+  serial();
   delay(1000);
 }
