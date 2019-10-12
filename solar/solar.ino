@@ -12,7 +12,7 @@
 #define X2_PIN 2
 #define Y1_PIN 3
 #define Y2_PIN 4
-#define LIGHT_ALLOWANCE 0.75
+#define LIGHT_ALLOWANCE 0.45
 Stepper stepper_x = Stepper(STEPS_PER_REVOLUTION, 11, 10, 9, 8);
 int last_direction = -1;
 /* ADRESS MAP EEPROM
