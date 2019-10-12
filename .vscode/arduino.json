@@ -1,5 +1,4 @@
 {
-    "port": "/dev/ttyACM0",
     "board": "arduino:avr:micro",
-    "sketch": "sketch_sep16a/sketch_sep16a.ino"
+    "sketch": "solar/solar.ino"
 }

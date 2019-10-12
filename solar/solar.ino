@@ -76,12 +76,11 @@ int move_to_x(int direction) {
     Serial.print(", deci ne rotim ");
     Serial.print(derotit);
     Serial.print('\n');
-    myStepper.step(ceil(derotit * 11.333)); // roughly 11.333 steps per degree
+    stepper_x.step(ceil(derotit * 11.333)); // roughly 11.333 steps per degree
 }
 
-void schimba_directia_x() {
+void schimba_directia_x(int new_direction = direction()) {
     Serial.print("Directia dorita din acest moment este: ");
-    int new_direction = direction();
     Serial.println(new_direction);
     if(last_direction == -1) {
         // 0 este directia initiala
@@ -106,20 +105,20 @@ void schimba_directia_x() {
 }
 
 void serial() {
-    string inString = "";
+    String inString;
     int command = 0;
     while (Serial.available() > 0) {
         int inChar = Serial.read();
         if(inChar == '\n') {
             if(command == 1) {
-                print("Primit comanda set_home_x ");
+                Serial.print("Primit comanda set_home_x ");
                 int val = inString.toInt();
-                print(val);
-                print('\n');
+                Serial.print(val);
+                Serial.print('\n');
                 schimba_directia_x(val);
                 last_direction = 0;
             } else if(command == 2) {
-                print("Primit comanda water");
+                Serial.print("Primit comanda water");
                 watering_system();
             }
             inString = "";
