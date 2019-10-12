@@ -1,9 +1,12 @@
 #include <Stepper.h>
 #include <EEPROM.h>
 #define STEPS_PER_REVOLUTION 2048
-#define MAX_HYDRO 100
-#define MIN_HYDRO 0
-#define HYDRO_PERCENTAGE 60
+#define HYDRO_MIN 100
+#define HYDRO_MAX 0
+// Trigger is a value from (0, 255) which specifies when to trigger the watering system
+#define HYDRO_TRIGGER 120
+
+#define HYDRO_PIN 5
 #define STEPPER_SPEED 5
 #define X1_PIN 1
 #define X2_PIN 2
@@ -115,16 +118,37 @@ void serial() {
                 print('\n');
                 schimba_directia_x(val);
                 last_direction = 0;
+            } else if(command == 2) {
+                print("Primit comanda water");
+                watering_system();
             }
             inString = "";
         } else if(inChar == ' ') {
             if(inString == "set_home_x") {
                 command = 1;
                 inString = "";
+            } else if(inString == "water") {
+                command = 2;
+                inString = "";
             }
         } else {
             inString += inChar;
         }
+    }
+}
+
+void watering_system() {
+
+}
+
+void hydro() {
+    int raw = analogRead(HYDRO_PIN);
+    int humidity = map(raw, HYDRO_MIN, HYDRO_MAX, 0, 255);
+    if(humidity < HYDRO_TRIGGER) {
+        Serial.print("A fost atins nivelul de apa necesar pornirii irigarii.\nNivelul actual este: ");
+        Serial.print(humidity);
+        Serial.print('\n');
+        watering_system();
     }
 }
 
