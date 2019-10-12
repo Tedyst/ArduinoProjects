@@ -21,6 +21,7 @@
 Stepper stepper_x = Stepper(STEPS_PER_REVOLUTION, 11, 10, 9, 8);
 int last_direction = -1;
 int hydro_timeout = 0;
+
 /* ADRESS MAP EEPROM
     0 -> last stepper position ( range 0-180 )
 */
@@ -37,8 +38,10 @@ void setup() {
     }
 
     Serial.print("Pozitia initiala a stepperului: ");
-    Serial.println(stepper_position);
+    Serial.print(stepper_position);
+    Serial.print('\n');
 }
+
 int direction() {
     // Get sensors data
     double x1 = analogRead(X1_PIN);
@@ -58,19 +61,24 @@ int direction() {
         (int)(x1+x2)*LIGHT_ALLOWANCE
     };
 
-    // Get the max value and its indices from the array
+    // Initialize the maximum and its id with the first element from the array
     int id = 0;
-    double maxim = vect[1];
+    double maxim = vect[0];
+    // Get the max value and its indices from the array
     for(int i = 1; i < 8 ; i++)
         if(maxim < vect[i]) {
             maxim = vect[i];
-            id = i+1;
+            id = i;
         }
-
-    return id;
+    Serial.print("Selectat cadranul(cred) ");
+    Serial.print(id + 1);
+    Serial.print(" cu maxmimul ");
+    Serial.print(maxim);
+    Serial.print('\n');
+    return id + 1;
 }
 
-int move_to_x(int direction) {
+void move_to_x(int direction) {
     int angle_needed = 0;
     // 22.5 degrees per direction
     if(direction * 22.5 + stepper_position > 180) {
@@ -92,11 +100,11 @@ int move_to_x(int direction) {
     stepper_x.step(ceil(angle_needed * 11.333));
 }
 
-void change_dir_x(int new_direction = direction()) {
+void solar_axis_x(int new_direction = direction()) {
     Serial.print("Directia dorita din acest moment este: ");
     Serial.println(new_direction);
     if(last_direction == -1) {
-        // 0 este directia initiala
+        // 0 is the initial direction
         move_to_x(0);
         last_direction = 0;
         return;
@@ -133,7 +141,7 @@ void serial() {
                 int val = inString.toInt();
                 Serial.print(val);
                 Serial.print('\n');
-                change_dir_x(val);
+                solar_axis_x(val);
                 last_direction = 0;
             } else if(command == 2) {
                 Serial.print("Primit comanda water");
@@ -172,7 +180,7 @@ void hydro() {
 }
 
 void loop() {
-    change_dir_x();
+    solar_axis_x();
     serial();
     if(hydro_timeout > 0) {
         hydro_timeout --;
