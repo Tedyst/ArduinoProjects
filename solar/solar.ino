@@ -30,7 +30,7 @@ void setup() {
     Serial.print("Pozitia initiala a stepperului: ");
     Serial.println(StepperPos);
 }
-int directie() {
+int direction() {
     // Get sensors data
     double x1 = analogRead(X1_PIN);
     double x2 = analogRead(X2_PIN);
@@ -60,16 +60,29 @@ int directie() {
 
     return id;
 }
-int muta_spre_directie(int directie) {
 
+int move_to_x(int direction) {
+    int derotit = 0;
+    if(direction * 22.5 + StepperPos > 180) { // 22.5 degrees per direction
+        derotit = -180 + direction * 22.5 + StepperPos;
+    } else {
+        derotit = direction * 22.5 + StepperPos;
+    }
+    Serial.print("Unghiul dorit este de ");
+    Serial.print(direction * 22.5 + StepperPos);
+    Serial.print(", deci ne rotim ");
+    Serial.print(derotit);
+    Serial.print('\n');
+    myStepper.step(ceil(derotit * 11.333)); // roughly 11.333 steps per degree
 }
+
 void schimba_directia_x() {
     Serial.print("Directia dorita din acest moment este: ");
-    int new_direction = directie();
+    int new_direction = direction();
     Serial.println(new_direction);
     if(last_direction == -1) {
         // 0 este directia initiala
-        muta_spre_directie(0);
+        move_to_x(0);
         last_direction = 0;
         return;
     }
@@ -79,14 +92,16 @@ void schimba_directia_x() {
         Serial.print(". Va fi schimbata in 3 secunde.");
         Serial.print('\n');
         for(int i = 1; i <= 3; i++) {
-            if(new_direction != directie()) {
+            if(new_direction != direction()) {
                 Serial.println("Anulare schimbare directie.");
                 return;
             }
             delay(1000);
         }
+        move_to_x(new_direction);
     }
 }
+
 void serial() {
     string inString = "";
     int command = 0;
@@ -94,7 +109,7 @@ void serial() {
         int inChar = Serial.read();
         if(inChar == '\n') {
             if(command == 1) {
-                print("Received command set_home_x ");
+                print("Primit comanda set_home_x ");
                 int val = inString.toInt();
                 print(val);
                 print('\n');
@@ -112,6 +127,7 @@ void serial() {
         }
     }
 }
+
 void loop() {
     schimba_directia_x();
     serial();
