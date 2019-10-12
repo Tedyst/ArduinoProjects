@@ -32,46 +32,48 @@ void setup() {
 }
 int directie() {
   // Get sensors data
-  int x1 = analogRead(X1_PIN);
-  int x2 = analogRead(X2_PIN);
-  int y1 = analogRead(Y1_PIN);
-  int y2 = analogRead(X2_PIN);
-  
-  // Si pe mine ma doare cand ma uit
-  int maxim = 0;
-  maxim = max(maxim, x1);
-  maxim = max(maxim, x2);
-  maxim = max(maxim, y1);
-  maxim = max(maxim, y2);
-  maxim = max(maxim, (x1+y1)*LIGHT_ALLOWANCE);
-  maxim = max(maxim, (x1+x2)*LIGHT_ALLOWANCE);
-  maxim = max(maxim, (y1+y2)*LIGHT_ALLOWANCE);
-  maxim = max(maxim, (x2+y2)*LIGHT_ALLOWANCE);
+  double x1 = analogRead(X1_PIN);
+  double x2 = analogRead(X2_PIN);
+  double y1 = analogRead(Y1_PIN);
+  double y2 = analogRead(X2_PIN);
 
-  // Ia directia
-  if(maxim == x1) return 1;
-  if(maxim == (x1+y1)*LIGHT_ALLOWANCE) return 2;
-  if(maxim == y1) return 3;
-  if(maxim == (y1+y2)*LIGHT_ALLOWANCE) return 4;
-  if(maxim == y2) return 5;
-  if(maxim == (x2+y2)*LIGHT_ALLOWANCE) return 6;
-  if(maxim == x2) return 7;
-  if(maxim == (x1+x2)*LIGHT_ALLOWANCE) return 8;
+  // Put the values in the array  
+  double vect[] = {
+    x1, 
+    (int)(x1+y1)*LIGHT_ALLOWANCE, 
+    y1, 
+    (int)(y1+y2)*LIGHT_ALLOWANCE,
+    y2,
+    (int)(x2+y2)*LIGHT_ALLOWANCE,
+    x2,
+    (int)(x1+x2)*LIGHT_ALLOWANCE
+  };
+
+  // Get the max value and its indices from the array 
+  int id=0;
+  double maxim=vect[1];
+  for(int i = 1; i < 8 ; i++)
+    if(maxim < vect[i]){
+      maxim = vect[i];
+      id = i+1;
+    }
+
+  return id;
 }
 int muta_spre_directie(int directie){
   
 }
-void schimba_directia(){
+void schimba_directia_x(){
   Serial.print("Directia dorita din acest moment este: ");
   int nouadirectie = directie();
   Serial.println(nouadirectie);
   if(ultima_directie == -1){
     // 0 este directia initiala
-    mutaspredirectie(0);
-    ultimadirectie = 0;
+    muta_spre_directie(0);
+    ultima_directie = 0;
     return;
   }
-  if(ultimadirectie != nouadirectie){
+  if(ultima_directie != nouadirectie){
     Serial.print("Directia dorita trebuie schimbata in ");
     Serial.print(nouadirectie);
     Serial.print(". Va fi schimbata in 3 secunde.");
@@ -86,6 +88,6 @@ void schimba_directia(){
   }
 }
 void loop() {
-  schimba_directia();
+  schimba_directia_x();
   delay(1000);
 }
