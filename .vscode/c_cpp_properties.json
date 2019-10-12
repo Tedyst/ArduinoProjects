@@ -4,7 +4,9 @@
             "name": "Linux",
             "includePath": [
                 "/home/tedy/.arduino15/packages/**",
-                "/home/tedy/arduino-1.8.10/**"
+                "/home/tedy/arduino-1.8.10/**",
+                "/home/tedy/.arduino15/packages/arduino/hardware/avr/1.6.23/**",
+                "/home/tedy/.arduino15/packages/arduino/tools/**"
             ],
             "intelliSenseMode": "gcc-x64",
             "compilerPath": "/usr/bin/clang",

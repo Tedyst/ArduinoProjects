@@ -24,20 +24,20 @@ int hydro_timeout = 0;
 /* ADRESS MAP EEPROM
     0 -> last stepper position ( range 0-180 )
 */
-unsigned int StepperPos;
+unsigned int stepper_position;
 void setup() {
     stepper_x.setSpeed(STEPPER_SPEED);
     Serial.begin(9600);
-    StepperPos = EEPROM.read(0);
+    stepper_position = EEPROM.read(0);
 
-    if (StepperPos > 180) {
+    if (stepper_position > 180) {
         // Init EEPROM
-        StepperPos = 0;
+        stepper_position = 0;
         EEPROM.write(0, 0);
     }
 
     Serial.print("Pozitia initiala a stepperului: ");
-    Serial.println(StepperPos);
+    Serial.println(stepper_position);
 }
 int direction() {
     // Get sensors data
@@ -71,28 +71,28 @@ int direction() {
 }
 
 int move_to_x(int direction) {
-    int derotit = 0;
+    int angle_needed = 0;
     // 22.5 degrees per direction
-    if(direction * 22.5 + StepperPos > 180) {
-        derotit = - direction * 22.5 - StepperPos;
-        StepperPos = direction * 22.5 - StepperPos - 180;
+    if(direction * 22.5 + stepper_position > 180) {
+        angle_needed = - direction * 22.5 - stepper_position;
+        stepper_position = direction * 22.5 - stepper_position - 180;
     } else {
-        derotit = direction * 22.5 + StepperPos;
-        StepperPos = derotit;
+        angle_needed = direction * 22.5 + stepper_position;
+        stepper_position = angle_needed;
     }
     // Write the new position to EEPROM
-    EEPROM.write(0, StepperPos);
+    EEPROM.write(0, stepper_position);
 
     Serial.print("Unghiul dorit este de ");
-    Serial.print(direction * 22.5 + StepperPos);
+    Serial.print(direction * 22.5 + stepper_position);
     Serial.print(", deci ne rotim ");
-    Serial.print(derotit);
+    Serial.print(angle_needed);
     Serial.print('\n');
     // roughly 11.333 steps per degree
-    stepper_x.step(ceil(derotit * 11.333));
+    stepper_x.step(ceil(angle_needed * 11.333));
 }
 
-void schimba_directia_x(int new_direction = direction()) {
+void change_dir_x(int new_direction = direction()) {
     Serial.print("Directia dorita din acest moment este: ");
     Serial.println(new_direction);
     if(last_direction == -1) {
@@ -133,7 +133,7 @@ void serial() {
                 int val = inString.toInt();
                 Serial.print(val);
                 Serial.print('\n');
-                schimba_directia_x(val);
+                change_dir_x(val);
                 last_direction = 0;
             } else if(command == 2) {
                 Serial.print("Primit comanda water");
@@ -155,7 +155,7 @@ void serial() {
 }
 
 void watering_system() {
-
+    // TODO: Sa vad ce trb sa fac aici
 }
 
 void hydro() {
@@ -172,7 +172,7 @@ void hydro() {
 }
 
 void loop() {
-    schimba_directia_x();
+    change_dir_x();
     serial();
     if(hydro_timeout > 0) {
         hydro_timeout --;
