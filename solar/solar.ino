@@ -1,20 +1,26 @@
 #include <Stepper.h>
 #include <EEPROM.h>
-#define STEPS_PER_REVOLUTION 2048
+// Hydro section
+// Trigger is a value from (0, 255) which specifies when to trigger the watering system
 #define HYDRO_MIN 100
 #define HYDRO_MAX 0
-// Trigger is a value from (0, 255) which specifies when to trigger the watering system
 #define HYDRO_TRIGGER 120
 
-#define HYDRO_PIN 5
+// Solar section
 #define STEPPER_SPEED 5
+#define STEPS_PER_REVOLUTION 2048
+#define LIGHT_ALLOWANCE 0.45
+
+// Pins
 #define X1_PIN 1
 #define X2_PIN 2
 #define Y1_PIN 3
 #define Y2_PIN 4
-#define LIGHT_ALLOWANCE 0.45
+#define HYDRO_PIN 5
+
 Stepper stepper_x = Stepper(STEPS_PER_REVOLUTION, 11, 10, 9, 8);
 int last_direction = -1;
+int hydro_timeout = 0;
 /* ADRESS MAP EEPROM
     0 -> last stepper position ( range 0-180 )
 */
@@ -114,6 +120,11 @@ void schimba_directia_x(int new_direction = direction()) {
 void serial() {
     String inString;
     int command = 0;
+    /* Available commands:
+        1. set_home_x <int> -> runs schimba_directia_x(<int>)
+        2. water -> runs watering_system()
+    */
+
     while (Serial.available() > 0) {
         int inChar = Serial.read();
         if(inChar == '\n') {
@@ -148,6 +159,7 @@ void watering_system() {
 }
 
 void hydro() {
+    // If the humidity reaches HYDRO_TRIGGER, run the watering system
     int raw = analogRead(HYDRO_PIN);
     int humidity = map(raw, HYDRO_MIN, HYDRO_MAX, 0, 255);
     if(humidity < HYDRO_TRIGGER) {
@@ -155,11 +167,17 @@ void hydro() {
         Serial.print(humidity);
         Serial.print('\n');
         watering_system();
+        hydro_timeout = 30;
     }
 }
 
 void loop() {
     schimba_directia_x();
     serial();
+    if(hydro_timeout > 0) {
+        hydro_timeout --;
+    } else {
+        hydro();
+    }
     delay(1000);
 }
