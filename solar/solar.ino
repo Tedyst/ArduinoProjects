@@ -1,5 +1,6 @@
 #include <Stepper.h>
 #include <EEPROM.h>
+#include <Servo.h>
 // Hydro section
 // Trigger is a value from (0, 255) which specifies when to trigger the watering system
 #define HYDRO_MIN 100
@@ -22,6 +23,8 @@
 #define STEPPER_PIN3 9
 #define STEPPER_PIN4 8
 
+#define SERVO_Y 6
+Servo servo_y;
 Stepper stepper_y = Stepper(STEPS_PER_REVOLUTION, STEPPER_PIN1, STEPPER_PIN2, STEPPER_PIN3, STEPPER_PIN4);
 int last_direction = -1;
 int hydro_timeout = 0;
@@ -32,6 +35,7 @@ int hydro_timeout = 0;
 unsigned int stepper_position;
 void setup() {
     stepper_y.setSpeed(STEPPER_SPEED);
+    servo_y.attach(SERVO_Y);
     Serial.begin(9600);
     stepper_position = EEPROM.read(0);
 
@@ -95,7 +99,7 @@ void move_to_y(int direction) {
     // Write the new position to EEPROM
     EEPROM.write(0, stepper_position);
 
-    Serial.print("Unghiul dorit este de ");
+    Serial.print("Unghiul dorit pe y este de ");
     Serial.print(direction * 22.5 + stepper_position);
     Serial.print(", deci ne rotim ");
     Serial.print(angle_needed);
@@ -193,7 +197,7 @@ void loop() {
     if(hydro_timeout > 0) {
         hydro_timeout --;
     } else {
-        hydro();
+        // hydro();
     }
     delay(1000);
 }

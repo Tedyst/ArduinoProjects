@@ -1,4 +1,5 @@
 {
-    "board": "arduino:avr:micro",
-    "sketch": "solar/solar.ino"
+    "board": "arduino:avr:uno",
+    "sketch": "stepper/stepper.ino",
+    "port": "/dev/ttyUSB0"
 }
