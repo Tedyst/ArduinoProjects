@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <Stepper.h>
 #include <EEPROM.h>
 #include <Servo.h>
