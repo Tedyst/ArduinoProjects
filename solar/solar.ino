@@ -1,5 +1,6 @@
 #include <Stepper.h>
 #include <EEPROM.h>
+#include <Servo.h>
 // Hydro section
 // Trigger is a value from (0, 255) which specifies when to trigger the watering system
 #define HYDRO_MIN 100
@@ -17,8 +18,10 @@
 #define Y1_PIN 3
 #define Y2_PIN 4
 #define HYDRO_PIN 5
+#define SERVO_Y 6
 
 Stepper stepper_x = Stepper(STEPS_PER_REVOLUTION, 11, 10, 9, 8);
+Servo servo_y;
 int last_direction = -1;
 int hydro_timeout = 0;
 /* ADRESS MAP EEPROM
@@ -26,6 +29,7 @@ int hydro_timeout = 0;
 */
 unsigned int stepper_position;
 void setup() {
+    servo_y.attach(SERVO_Y);
     stepper_x.setSpeed(STEPPER_SPEED);
     Serial.begin(9600);
     stepper_position = EEPROM.read(0);
@@ -70,7 +74,7 @@ int direction() {
     return id;
 }
 
-int move_to_x(int direction) {
+void move_to_y(int direction) {
     int angle_needed = 0;
     // 22.5 degrees per direction
     if(direction * 22.5 + stepper_position > 180) {
@@ -83,13 +87,27 @@ int move_to_x(int direction) {
     // Write the new position to EEPROM
     EEPROM.write(0, stepper_position);
 
-    Serial.print("Unghiul dorit este de ");
+    Serial.print("Unghiul dorit pe y este de ");
     Serial.print(direction * 22.5 + stepper_position);
     Serial.print(", deci ne rotim ");
     Serial.print(angle_needed);
     Serial.print('\n');
     // roughly 11.333 steps per degree
     stepper_x.step(ceil(angle_needed * 11.333));
+}
+
+void move_to_x(int direction){
+    int current_position = servo_y.read();
+    // 22.5 degrees per direction
+    if(direction * 22.5 + current_position > 180) {
+        current_position = direction * 22.5 - current_position - 180;
+    } else {
+        current_position = direction * 22.5 - current_position;
+    }
+    Serial.print("Unghiul dorit pe x este de ");
+    Serial.print(current_position);
+    Serial.print('\n');
+    servo_y.write(current_position);
 }
 
 void change_dir_x(int new_direction = direction()) {
@@ -177,7 +195,7 @@ void loop() {
     if(hydro_timeout > 0) {
         hydro_timeout --;
     } else {
-        hydro();
+        // hydro();
     }
     delay(1000);
 }
