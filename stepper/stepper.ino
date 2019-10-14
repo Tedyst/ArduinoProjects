@@ -14,24 +14,14 @@ void setup() {
 void loop() {
     s1.write(90);
     s.set_RPM(300);
-    for(int i=1;i<=180;i++){
+    for(int i=0;i<=180;i++){
         s1.write(i);
-        s.rotate(0);
-        s.rotate(0);
+        delay(30);
+        // delay(30);
+        // for(int j=1;j<=10;j++)
+        //     s.rotate(0);
     }
-    for(int i=1;i<=180;i++){
-        s1.write(180-i);
-        s.rotate(1);
-        s.rotate(1);
-    }
-    for(int i=1;i<=180;i++){
-        s1.write(i);
-        s.rotate(1);
-        s.rotate(1);
-    }
-    for(int i=1;i<=180;i++){
-        s1.write(180-i);
-        s.rotate(1);
-        s.rotate(1);
-    }
+    delay(2000);
+    s1.write(0);
+    delay(2000);
 }
